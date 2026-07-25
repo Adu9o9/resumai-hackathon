@@ -1,7 +1,7 @@
 # ⚡ RESUMAI: AI-Powered Resume Matcher & ATS Scorecard SaaS
 
 🌍 Live Demo: https://resumai-hackathon.vercel.app  
-▶️ Video Walkthrough: *(Insert Google Drive / Loom Link Here)*  
+▶️ Video Walkthrough: *([Insert Google Drive / Loom Link Here](https://drive.google.com/file/d/1s_5o64WgYs1z_ZsjZPENIXWX1m0z4_ox/view?usp=sharing))*  
 
 ## The Problem
 
