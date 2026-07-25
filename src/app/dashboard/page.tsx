@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
+
 type ParsedFeedback = {
   summary?: string;
   strengths?: string[];
@@ -60,9 +61,11 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   
   // User & History State
+  // User & History State
   const [isPro, setIsPro] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true); 
   const [pastReviews, setPastReviews] = useState<PastReview[]>([]);
-  const [selectedReview, setSelectedReview] = useState<PastReview | null>(null);
+  const [selectedReview, setSelectedReview] = useState<PastReview | null>(null); // Restore this line
 
   // Data Fetching
   const fetchHistory = async () => {
@@ -99,6 +102,7 @@ export default function DashboardPage() {
           setIsPro(data.subscription_tier === "pro");
         }
       }
+      setIsLoadingProfile(false); // <-- Add this here, before fetchHistory
       await fetchHistory();
     }
     init();
@@ -224,7 +228,9 @@ export default function DashboardPage() {
           </Link>
 
           <div className="flex items-center gap-4">
-            {isPro ? (
+            {isLoadingProfile ? (
+              <div className="h-6 w-24 animate-pulse rounded-full bg-white/10" />
+            ) : isPro ? (
               <div className="flex items-center gap-3">
                 <span className="rounded-full border border-[#ffd60a]/30 bg-[#ffd60a]/10 px-3 py-1 text-xs font-semibold tracking-widest text-[#ffd60a]">
                   PRO PLAN
