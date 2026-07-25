@@ -400,9 +400,14 @@ export default function Home() {
                     <div className="h-1.5 w-1.5 rounded-full bg-[#ffd60a]" />
                     Unlimited Resume Reviews
                   </li>
+                  
                   <li className="flex items-center gap-3">
                     <div className="h-1.5 w-1.5 rounded-full bg-[#ffd60a]" />
                     Full Deep-Dive AI Analysis
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="h-1.5 w-1.5 rounded-full bg-[#ffd60a]" />
+                    ATS Scorecard & Missing Keyword Insights
                   </li>
                   <li className="flex items-center gap-3">
                     <div className="h-1.5 w-1.5 rounded-full bg-[#ffd60a]" />

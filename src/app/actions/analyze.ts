@@ -88,7 +88,7 @@ export async function analyzeResume(input: {
           {
             role: "system",
             content:
-              "You are an expert recruiting assistant. Return concise, actionable feedback as a JSON object with fields: overallMatch (number), strengths (array of strings), gaps (array of strings), suggestions (array of strings), summary (string).",
+              "You are an expert recruiting assistant. Return concise, actionable feedback as a JSON object with this exact structure: {\"summary\": \"string\", \"strengths\": [\"string\"], \"gaps\": [\"string\"], \"suggestions\": [\"string\"], \"ats_score\": 85, \"missing_keywords\": [\"Kubernetes\", \"GraphQL\"]}. Use ats_score as an integer from 0 to 100 and missing_keywords as an array of strings that represent the most important job requirements missing from the resume.",
           },
           {
             role: "user",
@@ -120,6 +120,8 @@ export async function analyzeResume(input: {
       gaps?: string[];
       suggestions?: string[];
       summary?: string;
+      ats_score?: number;
+      missing_keywords?: string[];
     } | null = null;
 
     try {
@@ -147,8 +149,9 @@ export async function analyzeResume(input: {
       summary: parsedFeedback?.summary ?? feedback,
       strengths: parsedFeedback?.strengths ?? [],
       weaknesses: parsedFeedback?.gaps ?? [],
-      missing_keywords: [],
+      missing_keywords: parsedFeedback?.missing_keywords ?? [],
       improved_bullets: parsedFeedback?.suggestions ?? [],
+      ats_score: parsedFeedback?.ats_score ?? 0,
     };
 
     const { error: insertError } = await supabase.from("resume_reviews").insert(insertPayload);

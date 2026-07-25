@@ -13,6 +13,8 @@ type ParsedFeedback = {
   strengths?: string[];
   gaps?: string[];
   suggestions?: string[];
+  ats_score?: number;
+  missing_keywords?: string[];
 };
 
 type PastReview = {
@@ -23,6 +25,8 @@ type PastReview = {
   strengths: string[] | string;
   weaknesses: string[] | string;
   improved_bullets: string[] | string;
+  ats_score?: number;
+  missing_keywords?: string[] | string;
 };
 
 function parseFeedback(feedback: string): ParsedFeedback {
@@ -164,14 +168,72 @@ export default function DashboardPage() {
     summary: string, 
     strengths: string[], 
     gaps: string[], 
-    suggestions: string[]
+    suggestions: string[],
+    atsScore?: number,
+    missingKeywords?: string[],
+    showMissingKeywords: boolean = true
   ) {
+    const normalizedScore = Math.max(0, Math.min(100, Math.round(atsScore ?? 0)));
+
     return (
       <div className="flex flex-col gap-6 rounded-[2rem] border border-white/10 bg-white/5 p-6 shadow-2xl sm:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="space-y-3">
           <p className="text-xs font-semibold uppercase tracking-widest text-white/50">Match summary</p>
           <p className="text-sm leading-relaxed text-white/90">{summary}</p>
         </div>
+
+        {/* Hide the Scorecard on Legacy Reviews */}
+        {(atsScore && atsScore > 0) || (missingKeywords && missingKeywords.length > 0) ? (
+          <div className="rounded-[1.5rem] border border-[#ffd60a]/20 bg-[#ffd60a]/10 p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-[#ffd60a]">ATS scorecard</p>
+                <p className="mt-2 text-3xl font-semibold text-white">{normalizedScore}/100</p>
+                <p className="mt-2 text-sm text-white/70">
+                  {normalizedScore >= 80
+                    ? "Strong alignment with the job description."
+                    : normalizedScore >= 60
+                      ? "Good base match with a few gaps to polish."
+                      : "The profile needs more targeted keywords and experience cues."}
+                </p>
+              </div>
+              <div className="rounded-full border border-[#ffd60a]/25 bg-black/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#ffd60a]">
+                {showMissingKeywords ? "Live keywords" : "Pro insight"}
+              </div>
+            </div>
+
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-black/20">
+              <div
+                className="h-full rounded-full bg-[#ffd60a] transition-all duration-500"
+                style={{ width: `${normalizedScore}%` }}
+              />
+            </div>
+
+            {showMissingKeywords ? (
+              <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
+                <p className="text-xs font-semibold uppercase tracking-widest text-white/50">Missing keywords</p>
+                {missingKeywords && missingKeywords.length > 0 ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {missingKeywords.map((keyword, idx) => (
+                      <span key={`${keyword}-${idx}`} className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-sm text-white/80">
+                        {keyword}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-3 text-sm text-white/60">No obvious keyword gaps surfaced for this match.</p>
+                )}
+              </div>
+            ) : (
+              <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
+                <p className="text-xs font-semibold uppercase tracking-widest text-white/50">Missing keywords</p>
+                <p className="mt-3 text-sm text-white/70">
+                  Upgrade to Pro to unlock the exact missing keywords and strengthen your resume targeting.
+                </p>
+              </div>
+            )}
+          </div>
+        ) : null}
 
         <div className="grid gap-4">
           <div className="rounded-xl border border-white/10 bg-black/40 p-5">
@@ -315,7 +377,10 @@ export default function DashboardPage() {
                   selectedReview.summary,
                   safeParseArray(selectedReview.strengths),
                   safeParseArray(selectedReview.weaknesses), // DB calls it weaknesses, UI calls it gaps
-                  safeParseArray(selectedReview.improved_bullets) // DB calls it improved_bullets, UI calls it suggestions
+                  safeParseArray(selectedReview.improved_bullets), // DB calls it improved_bullets, UI calls it suggestions
+                  selectedReview.ats_score,
+                  safeParseArray(selectedReview.missing_keywords),
+                  isPro
                 )}
               </div>
             ) : (
@@ -377,14 +442,18 @@ export default function DashboardPage() {
                 ) : null}
 
                 {/* Newly Generated Results */}
-                {result && !result.requiresUpgrade ? (
-                  renderFeedbackContent(
-                    parseFeedback(result.feedback ?? "").summary ?? "Your AI-generated review is ready.",
-                    parseFeedback(result.feedback ?? "").strengths ?? [],
-                    parseFeedback(result.feedback ?? "").gaps ?? [],
-                    parseFeedback(result.feedback ?? "").suggestions ?? []
-                  )
-                ) : null}
+                {result && !result.requiresUpgrade ? (() => {
+                  const parsed = parseFeedback(result.feedback ?? "");
+                  return renderFeedbackContent(
+                    parsed.summary ?? "Your AI-generated review is ready.",
+                    parsed.strengths ?? [],
+                    parsed.gaps ?? [],
+                    parsed.suggestions ?? [],
+                    parsed.ats_score,
+                    parsed.missing_keywords,
+                    isPro
+                  );
+                })() : null}
 
                 {/* Upgrade Block */}
                 {result && result.requiresUpgrade ? (
